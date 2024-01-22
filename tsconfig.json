@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "target": "es6"
+  },
+  "files": [ "./muic-select.ts" ],
+  "compileOnSave": true
+}

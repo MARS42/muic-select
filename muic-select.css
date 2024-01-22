@@ -1,0 +1,51 @@
+﻿muic-select {
+    position: relative;
+}
+
+/* Options */
+.muic-select-options-container {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transform: scaleY(0.5) rotateY(25deg) translateY(-10px);
+    
+    z-index: 4242;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px gray;
+    transform-origin: top center;
+    transition: all 250ms ease-in-out;
+}
+
+.muic-select-options-container[open] {
+    opacity: 1;
+    pointer-events: all;
+    transform: scaleY(1) rotateY(0deg) translateY(0);
+}
+
+.muic-select-options-item {
+    background-color: white;
+    cursor: pointer;
+    user-select: none;
+}
+
+.muic-select-options-item:hover {
+    background-color: #d5d5d5;
+}
+
+.muic-select-options-item[selected] {
+    background-color: gray;
+}
+
+/* Selection */
+.muic-select-selection {
+    border: 1px black;
+    z-index: 4241;
+}
+
+.muic-select-selection-item {
+    border-radius: 4px;
+    background-color: blue;
+    cursor: pointer;
+    user-select: none;
+}

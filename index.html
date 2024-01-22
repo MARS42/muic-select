@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="muic-select.css"/>
+    <script src="muic-select.js" defer></script>
+    <title>MUIC: Select</title>
+</head>
+<body>
+    <muic-select selected="VALUE" placeholder="PLACEHOLDER" multiple>
+        <template class="muic-select-selection"></template>
+        <template class="muic-select-option"></template>
+        <option value="VALUE">TEXT</option>
+        <option value="VALUE 2">TEXT 2</option>
+        <option value="VALUE 3">TEXT 3</option>
+        <option value="VALUE 4">TEXT 4</option>
+    </muic-select>
+
+    <muic-select selected="VALUE" placeholder="PLACEHOLDER">
+        <template class="muic-select-selection">
+        </template>
+        <template class="muic-select-option">
+        </template>
+        <option value="VALUE">TEXT</option>
+        <option value="VALUE 2">TEXT 2</option>
+        <option value="VALUE 2">TEXT 2</option>
+        <option value="VALUE 2">TEXT 2</option>
+        <option value="VALUE 2">TEXT 2</option>
+    </muic-select>
+</body>
+</html>
