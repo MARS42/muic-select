@@ -1,7 +1,9 @@
 ﻿interface MuiSelectOption {
     value: string,
     label: string,
+    // DOM Element in option list
     $element?: HTMLElement,
+    // DOM Element in selection list
     $selectionElement?: HTMLElement,
     selected: boolean,
 }
