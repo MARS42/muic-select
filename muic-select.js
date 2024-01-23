@@ -18,8 +18,22 @@ class MuicSelect extends HTMLElement {
         this.$selectionContainer.addEventListener('click', (event) => {
             this.toggleOptions(!this.showingOptions);
         });
+        this.$clearSelection = document.createElement('button');
+        this.$clearSelection.innerText = 'Clear';
+        this.$clearSelection.classList.add(MuicSelect.CLEAR_SELECTION_CLASS);
+        this.$selectionContainer.appendChild(this.$clearSelection);
         this.appendChild(this.$optionsContainer);
         this.appendChild(this.$selectionContainer);
+        // Observer to selections height
+        const selectionSizeObserver = new ResizeObserver((entries) => {
+            this.$optionsContainer.style.translate
+                = `0 ${this.$selectionContainer.offsetHeight + 4}px`;
+            this.$optionsContainer.style.width = this.$selectionContainer.offsetWidth + 'px';
+        });
+        selectionSizeObserver.observe(this.$selectionContainer);
+        this.$optionsContainer.addEventListener('focusout', () => {
+            console.log('out');
+        });
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (newValue === oldValue)
@@ -65,9 +79,21 @@ class MuicSelect extends HTMLElement {
     createSelectionItem(option) {
         const empty = document.createElement('div');
         empty.classList.add(MuicSelect.SELECTION_ITEM_CLASS);
-        if (!option)
+        if (!option) {
             empty.classList.add('muic-empty-selection');
-        empty.innerHTML = !option ? this.attrs.get(MuicSelect.PLACEHOLDER_ATTRIBUTE) : option.label;
+            empty.innerHTML = this.attrs.get(MuicSelect.PLACEHOLDER_ATTRIBUTE);
+            return empty;
+        }
+        const $span = document.createElement('span');
+        $span.innerText = option.label;
+        const $button = document.createElement('button');
+        $button.innerText = 'X';
+        $button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.selectOption(option, false);
+        });
+        empty.appendChild($span);
+        empty.appendChild($button);
         return empty;
     }
     /**
@@ -98,6 +124,7 @@ class MuicSelect extends HTMLElement {
             this.$selectionContainer.appendChild(this.createSelectionItem());
         else if (!isEmpty)
             $emptySelection === null || $emptySelection === void 0 ? void 0 : $emptySelection.remove();
+        //this.$optionsContainer.style.translate = `0 ${this.$selectionContainer.offsetHeight}px`;
     }
     /**
      * Renders selection bar and options list
@@ -112,10 +139,19 @@ class MuicSelect extends HTMLElement {
      */
     toggleOptions(show) {
         this.showingOptions = show;
-        if (show)
+        if (show) {
+            if (MuicSelect.CURRENT_INSTANCE && MuicSelect.CURRENT_INSTANCE !== this) {
+                MuicSelect.CURRENT_INSTANCE.toggleOptions(false);
+            }
             this.$optionsContainer.setAttribute('open', '');
-        else
+            this.$selectionContainer.setAttribute('active', '');
+            this.$optionsContainer.focus();
+            MuicSelect.CURRENT_INSTANCE = this;
+        }
+        else {
             this.$optionsContainer.removeAttribute('open');
+            this.$selectionContainer.removeAttribute('active');
+        }
     }
     /**
      * Selects an option and updates the selection bar
@@ -143,14 +179,20 @@ class MuicSelect extends HTMLElement {
     selectedOptions() {
         return this.options.filter(o => o.selected);
     }
+    clearOptions() {
+        this.options.forEach(option => {
+            this.selectOption(option, false);
+        });
+    }
 }
 MuicSelect.SELECTOR = 'muic-select';
 MuicSelect.PLACEHOLDER_ATTRIBUTE = 'placeholder';
 MuicSelect.MULTIPLE_ATTRIBUTE = 'multiple';
-MuicSelect.SELECTION_TEMPLATE = 'template.muic-select-selection';
-MuicSelect.OPTION_TEMPLATE = 'template.muic-select-option';
+MuicSelect.SELECTION_TEMPLATE = 'template.muic-selection';
+MuicSelect.OPTION_TEMPLATE = 'template.muic-option';
 MuicSelect.SELECTION_CLASS = 'muic-select-selection';
 MuicSelect.SELECTION_ITEM_CLASS = 'muic-select-selection-item';
+MuicSelect.CLEAR_SELECTION_CLASS = 'muic-select-clear-selection';
 MuicSelect.OPTIONS_CONTAINER_CLASS = 'muic-select-options-container';
 MuicSelect.OPTIONS_CONTAINER_ITEM_CLASS = 'muic-select-options-item';
 customElements.define('muic-select', MuicSelect);

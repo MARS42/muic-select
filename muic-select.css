@@ -5,47 +5,81 @@
 /* Options */
 .muic-select-options-container {
     position: absolute;
-    opacity: 0;
     pointer-events: none;
-    transform: scaleY(0.5) rotateY(25deg) translateY(-10px);
-    
+    transform: scaleY(0.5);
+    opacity: 0;
+
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
     z-index: 4242;
     background-color: white;
     border-radius: 8px;
     border: 1px gray;
     transform-origin: top center;
-    transition: all 250ms ease-in-out;
+    transition: all 180ms ease-in-out;
 }
 
 .muic-select-options-container[open] {
-    opacity: 1;
     pointer-events: all;
-    transform: scaleY(1) rotateY(0deg) translateY(0);
+    transform: scaleY(1);
+    opacity: 1;
 }
 
 .muic-select-options-item {
-    background-color: white;
     cursor: pointer;
     user-select: none;
+    padding: 4px;
+    margin: 4px;
+    border-radius: 4px;
+    transition: background-color 100ms ease-in;
 }
 
 .muic-select-options-item:hover {
-    background-color: #d5d5d5;
+    background-color: #ffdec2;
 }
 
 .muic-select-options-item[selected] {
-    background-color: gray;
+    background-color: #ffdec2;
 }
 
 /* Selection */
 .muic-select-selection {
     border: 1px black;
+    border-radius: 4px;
     z-index: 4241;
+    display: flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    gap: 4px;
+    padding: 4px;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+    position: relative;
+
+    transition: background-color 200ms ease-in-out;
+}
+
+.muic-select-selection:hover, .muic-select-selection[active] {
+    background-color: #eaeaea;
 }
 
 .muic-select-selection-item {
     border-radius: 4px;
-    background-color: blue;
-    cursor: pointer;
+    background-color: #ffb06c;
     user-select: none;
+    padding: 4px;
+}
+
+.muic-select-selection-item > span {
+    margin-right: 4px;
+}
+
+.muic-select-selection-item.muic-empty-selection {
+    background-color: transparent;
+}
+
+.muic-select-clear-selection{
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translate(-50%, -50%);
 }
