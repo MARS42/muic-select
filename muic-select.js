@@ -12,6 +12,26 @@ class MuicSelect extends HTMLElement {
         this.$selectionTemplate = this.querySelector(MuicSelect.SELECTION_TEMPLATE);
         this.$optionTemplate = this.querySelector(MuicSelect.OPTION_TEMPLATE);
         this.$optionsContainer = document.createElement('div');
+        this.$optionsSearch = document.createElement('div');
+        this.$optionsSearchInput = document.createElement('input');
+        this.$optionsSearch.appendChild(this.$optionsSearchInput);
+        this.$optionsList = document.createElement('div');
+        this.$optionsActions = document.createElement('div');
+        const $btnClose = document.createElement('button');
+        const $btnSelectAll = document.createElement('button');
+        const $btnDeselectAll = document.createElement('button');
+        $btnClose.innerText = 'Close';
+        $btnSelectAll.innerText = 'Select all';
+        $btnDeselectAll.innerText = 'Deselect all';
+        this.$optionsActions.appendChild($btnClose);
+        this.$optionsActions.appendChild($btnSelectAll);
+        this.$optionsActions.appendChild($btnDeselectAll);
+        this.$optionsSearch.classList.add(MuicSelect.OPTIONS_SEARCH_CLASS);
+        this.$optionsList.classList.add(MuicSelect.OPTIONS_LIST_CLASS);
+        this.$optionsActions.classList.add(MuicSelect.OPTIONS_ACTIONS_CLASS);
+        this.$optionsContainer.appendChild(this.$optionsSearch);
+        this.$optionsContainer.appendChild(this.$optionsList);
+        this.$optionsContainer.appendChild(this.$optionsActions);
         this.$optionsContainer.classList.add(MuicSelect.OPTIONS_CONTAINER_CLASS);
         this.$selectionContainer = document.createElement('div');
         this.$selectionContainer.classList.add(MuicSelect.SELECTION_CLASS);
@@ -26,14 +46,22 @@ class MuicSelect extends HTMLElement {
         this.appendChild(this.$selectionContainer);
         // Observer to selections height
         const selectionSizeObserver = new ResizeObserver((entries) => {
-            this.$optionsContainer.style.translate
-                = `0 ${this.$selectionContainer.offsetHeight + 4}px`;
+            /*this.$optionsContainer.style.translate
+                = `0 ${this.$selectionContainer.offsetHeight + 4}px`;*/
             this.$optionsContainer.style.width = this.$selectionContainer.offsetWidth + 'px';
         });
         selectionSizeObserver.observe(this.$selectionContainer);
         this.$optionsContainer.addEventListener('focusout', () => {
             console.log('out');
         });
+        // Events
+        this.$clearSelection.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.deselectAllOptions();
+        });
+        $btnClose.addEventListener('click', () => this.toggleOptions(false));
+        $btnSelectAll.addEventListener('click', () => this.selectAllOptions());
+        $btnDeselectAll.addEventListener('click', () => this.deselectAllOptions());
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (newValue === oldValue)
@@ -58,15 +86,15 @@ class MuicSelect extends HTMLElement {
      * Renders options list
      */
     renderOptionsContainer() {
-        while (this.$optionsContainer.firstChild) {
-            this.$optionsContainer.removeChild(this.$optionsContainer.firstChild);
+        while (this.$optionsList.firstChild) {
+            this.$optionsList.removeChild(this.$optionsList.firstChild);
         }
         this.options.forEach(option => {
             const $option = document.createElement('option');
             $option.classList.add(MuicSelect.OPTIONS_CONTAINER_ITEM_CLASS);
             $option.value = option.value;
             $option.innerText = option.label;
-            this.$optionsContainer.appendChild($option);
+            this.$optionsList.appendChild($option);
             option.$element = $option;
             $option.addEventListener('click', (event) => this.selectOption(option, !option.selected));
         });
@@ -157,8 +185,9 @@ class MuicSelect extends HTMLElement {
      * Selects an option and updates the selection bar
      * @param option Option to change selection property
      * @param select Value to set
+     * @param [render=true] If is false, {@link renderSelectionsContainer} must be called manually
      */
-    selectOption(option, select) {
+    selectOption(option, select, render = true) {
         const selectedOptions = this.selectedOptions();
         if (option.selected == false
             && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false
@@ -170,6 +199,16 @@ class MuicSelect extends HTMLElement {
             option.$element.setAttribute('selected', '');
         else
             option.$element.removeAttribute('selected');
+        if (!render)
+            return;
+        this.renderSelectionsContainer();
+    }
+    selectAllOptions() {
+        this.options.forEach(option => this.selectOption(option, true, false));
+        this.renderSelectionsContainer();
+    }
+    deselectAllOptions() {
+        this.options.forEach(option => this.selectOption(option, false, false));
         this.renderSelectionsContainer();
     }
     /**
@@ -181,8 +220,9 @@ class MuicSelect extends HTMLElement {
     }
     clearOptions() {
         this.options.forEach(option => {
-            this.selectOption(option, false);
+            this.selectOption(option, false, false);
         });
+        this.renderSelectionsContainer();
     }
 }
 MuicSelect.SELECTOR = 'muic-select';
@@ -195,5 +235,8 @@ MuicSelect.SELECTION_ITEM_CLASS = 'muic-select-selection-item';
 MuicSelect.CLEAR_SELECTION_CLASS = 'muic-select-clear-selection';
 MuicSelect.OPTIONS_CONTAINER_CLASS = 'muic-select-options-container';
 MuicSelect.OPTIONS_CONTAINER_ITEM_CLASS = 'muic-select-options-item';
+MuicSelect.OPTIONS_SEARCH_CLASS = 'muic-select-options-search';
+MuicSelect.OPTIONS_LIST_CLASS = 'muic-select-options-list';
+MuicSelect.OPTIONS_ACTIONS_CLASS = 'muic-select-options-actions';
 customElements.define('muic-select', MuicSelect);
 //# sourceMappingURL=muic-select.js.map

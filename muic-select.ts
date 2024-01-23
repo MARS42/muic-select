@@ -26,13 +26,21 @@ class MuicSelect extends HTMLElement {
 
     static OPTIONS_CONTAINER_CLASS: string = 'muic-select-options-container';
     static OPTIONS_CONTAINER_ITEM_CLASS: string = 'muic-select-options-item';
+    static OPTIONS_SEARCH_CLASS: string = 'muic-select-options-search';
+    static OPTIONS_LIST_CLASS: string = 'muic-select-options-list';
+    static OPTIONS_ACTIONS_CLASS: string = 'muic-select-options-actions';
 
     private $selectionTemplate: HTMLTemplateElement;
     private $optionTemplate: HTMLTemplateElement;
 
     private $optionsContainer: HTMLElement;
+    private $optionsSearch: HTMLElement;
+    private $optionsList: HTMLElement;
+    private $optionsActions: HTMLElement;
+
     private $selectionContainer: HTMLElement;
     private $clearSelection: HTMLElement;
+    private $optionsSearchInput: HTMLInputElement;
 
     private showingOptions: boolean = false;
     private attrs: Map<string, any> = new Map();
@@ -52,6 +60,35 @@ class MuicSelect extends HTMLElement {
         this.$optionTemplate = this.querySelector(MuicSelect.OPTION_TEMPLATE);
 
         this.$optionsContainer = document.createElement('div');
+
+        this.$optionsSearch = document.createElement('div');
+        this.$optionsSearchInput = document.createElement('input');
+        this.$optionsSearch.appendChild(this.$optionsSearchInput);
+
+        this.$optionsList = document.createElement('div');
+
+        this.$optionsActions = document.createElement('div');
+        const $btnClose = document.createElement('button');
+        const $btnSelectAll = document.createElement('button');
+        const $btnDeselectAll = document.createElement('button');
+
+        $btnClose.innerText = 'Close';
+        $btnSelectAll.innerText = 'Select all';
+        $btnDeselectAll.innerText = 'Deselect all';
+
+        this.$optionsActions.appendChild($btnClose);
+        this.$optionsActions.appendChild($btnSelectAll);
+        this.$optionsActions.appendChild($btnDeselectAll);
+
+        this.$optionsSearch.classList.add(MuicSelect.OPTIONS_SEARCH_CLASS);
+        this.$optionsList.classList.add(MuicSelect.OPTIONS_LIST_CLASS);
+        this.$optionsActions.classList.add(MuicSelect.OPTIONS_ACTIONS_CLASS);
+
+        this.$optionsContainer.appendChild(this.$optionsSearch);
+        this.$optionsContainer.appendChild(this.$optionsList);
+        this.$optionsContainer.appendChild(this.$optionsActions);
+
+
         this.$optionsContainer.classList.add(MuicSelect.OPTIONS_CONTAINER_CLASS);
 
         this.$selectionContainer = document.createElement('div');
@@ -69,8 +106,8 @@ class MuicSelect extends HTMLElement {
 
         // Observer to selections height
         const selectionSizeObserver: ResizeObserver = new ResizeObserver((entries) => {
-            this.$optionsContainer.style.translate
-                = `0 ${this.$selectionContainer.offsetHeight + 4}px`;
+            /*this.$optionsContainer.style.translate
+                = `0 ${this.$selectionContainer.offsetHeight + 4}px`;*/
             this.$optionsContainer.style.width = this.$selectionContainer.offsetWidth + 'px';
         });
         selectionSizeObserver.observe(this.$selectionContainer);
@@ -78,6 +115,16 @@ class MuicSelect extends HTMLElement {
         this.$optionsContainer.addEventListener('focusout', () => {
             console.log('out');
         });
+
+        // Events
+        this.$clearSelection.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.deselectAllOptions();
+        });
+
+        $btnClose.addEventListener('click', () => this.toggleOptions(false));
+        $btnSelectAll.addEventListener('click', () => this.selectAllOptions());
+        $btnDeselectAll.addEventListener('click', () => this.deselectAllOptions());
     }
 
     private attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -108,8 +155,8 @@ class MuicSelect extends HTMLElement {
      * Renders options list
      */
     private renderOptionsContainer() {
-        while (this.$optionsContainer.firstChild) {
-            this.$optionsContainer.removeChild(this.$optionsContainer.firstChild);
+        while (this.$optionsList.firstChild) {
+            this.$optionsList.removeChild(this.$optionsList.firstChild);
         }
 
         this.options.forEach(option => {
@@ -117,7 +164,7 @@ class MuicSelect extends HTMLElement {
             $option.classList.add(MuicSelect.OPTIONS_CONTAINER_ITEM_CLASS);
             $option.value = option.value;
             $option.innerText = option.label;
-            this.$optionsContainer.appendChild($option);
+            this.$optionsList.appendChild($option);
 
             option.$element = $option;
             $option.addEventListener('click', (event) => this.selectOption(option, !option.selected));
@@ -222,8 +269,9 @@ class MuicSelect extends HTMLElement {
      * Selects an option and updates the selection bar
      * @param option Option to change selection property
      * @param select Value to set
+     * @param [render=true] If is false, {@link renderSelectionsContainer} must be called manually
      */
-    selectOption(option: MuiSelectOption, select: boolean) {
+    selectOption(option: MuiSelectOption, select: boolean, render: boolean = true) {
 
         const selectedOptions = this.selectedOptions();
         if (option.selected == false
@@ -238,6 +286,17 @@ class MuicSelect extends HTMLElement {
         else
             option.$element.removeAttribute('selected');
 
+        if (!render) return;
+        this.renderSelectionsContainer();
+    }
+
+    selectAllOptions() {
+        this.options.forEach(option => this.selectOption(option, true, false));
+        this.renderSelectionsContainer();
+    }
+
+    deselectAllOptions() {
+        this.options.forEach(option => this.selectOption(option, false, false));
         this.renderSelectionsContainer();
     }
 
@@ -251,8 +310,9 @@ class MuicSelect extends HTMLElement {
 
     clearOptions() {
         this.options.forEach(option => {
-            this.selectOption(option, false);
+            this.selectOption(option, false, false);
         });
+        this.renderSelectionsContainer();
     }
 }
 
