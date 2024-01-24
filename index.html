@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="stylesheet" href="muic-select.css"/>
     <script src="muic-select.js" defer></script>
+    <style>
+        *{
+            font-family: sans-serif;
+        }
+    </style>
     <title>MUIC: Select</title>
 </head>
 <body>
+
+    <strong>Multiple</strong>
     <muic-select selected="VALUE" placeholder="PLACEHOLDER" multiple search>
         <template class="muic-selection">
         </template>
@@ -21,6 +28,8 @@
         <option value="VALUE 4">TEXT 12 asdaIWE0</option>
         <option value="VALUE 4">TEXT 3 IWE0 qiiew90rie</option>
     </muic-select>
+
+    <strong>Single</strong>
     <muic-select selected="VALUE" placeholder="PLACEHOLDER">
         <template class="muic-selection">
         </template>
@@ -32,5 +41,38 @@
         <option value="VALUE 2">TEXT 2</option>
         <option value="VALUE 2">TEXT 2</option>
     </muic-select>
+
+    <strong>Form</strong>
+    <form id="form">
+        <input type="text" id="name" name="name" value="name" />
+        <label for="form-select">
+            <muic-select id="form-select" name="form-select" multiple>
+                <option value="1">OPT 1</option>
+                <option value="2">OPT 2</option>
+                <option value="3">OPT 3</option>
+            </muic-select>
+        </label>
+        <label for="form-select-2">
+            <muic-select id="form-select-2" name="form-select-2">
+                <option value="1">OPT 1</option>
+                <option value="2">OPT 2</option>
+                <option value="3">OPT 3</option>
+            </muic-select>
+        </label>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        const $form = document.getElementById('form');
+
+        $form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData($form);
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            });
+        });
+    </script>
 </body>
 </html>

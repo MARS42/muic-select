@@ -3,6 +3,7 @@ class MuicSelect extends HTMLElement {
         return [this.PLACEHOLDER_ATTRIBUTE, this.MULTIPLE_ATTRIBUTE];
     }
     constructor() {
+        var _a;
         super();
         this.showingOptions = false;
         this.attrs = new Map();
@@ -10,6 +11,14 @@ class MuicSelect extends HTMLElement {
         this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE, '');
         this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, false);
         this.attrs.set(MuicSelect.SEARCH_ATTRIBUTE, false);
+        this.$select = document.createElement('select');
+        this.$select.multiple = true;
+        this.$select.hidden = true;
+        if (this.hasAttribute('id'))
+            this.$select.id = this.getAttribute('id');
+        if (this.hasAttribute('name'))
+            this.$select.name = this.getAttribute('name');
+        (_a = this.parentElement) === null || _a === void 0 ? void 0 : _a.insertBefore(this.$select, this);
         this.$selectionTemplate = this.querySelector(MuicSelect.SELECTION_TEMPLATE);
         this.$optionTemplate = this.querySelector(MuicSelect.OPTION_TEMPLATE);
         this.$optionsContainer = document.createElement('div');
@@ -22,6 +31,9 @@ class MuicSelect extends HTMLElement {
         const $btnClose = document.createElement('button');
         this.$btnSelectAll = document.createElement('button');
         this.$btnDeselectAll = document.createElement('button');
+        $btnClose.type = 'button';
+        this.$btnSelectAll.type = 'button';
+        this.$btnDeselectAll.type = 'button';
         $btnClose.innerText = 'Close';
         this.$btnSelectAll.innerText = 'Select all';
         this.$btnDeselectAll.innerText = 'Deselect all';
@@ -42,6 +54,7 @@ class MuicSelect extends HTMLElement {
             this.toggleOptions(!this.showingOptions);
         });
         this.$clearSelection = document.createElement('button');
+        this.$clearSelection.type = 'button';
         this.$clearSelection.innerText = 'Clear';
         this.$clearSelection.classList.add(MuicSelect.CLEAR_SELECTION_CLASS);
         this.$selectionContainer.appendChild(this.$clearSelection);
@@ -69,8 +82,9 @@ class MuicSelect extends HTMLElement {
         this.attrs.set(name, newValue);
     }
     connectedCallback() {
-        this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE, this.getAttribute(MuicSelect.PLACEHOLDER_ATTRIBUTE));
-        this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, this.hasAttribute(MuicSelect.MULTIPLE_ATTRIBUTE));
+        var _a, _b;
+        this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, (_a = this.hasAttribute(MuicSelect.MULTIPLE_ATTRIBUTE)) !== null && _a !== void 0 ? _a : false);
+        this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE, (_b = this.getAttribute(MuicSelect.PLACEHOLDER_ATTRIBUTE)) !== null && _b !== void 0 ? _b : (this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) ? 'Select one or more' : 'Select one'));
         this.attrs.set(MuicSelect.SEARCH_ATTRIBUTE, this.hasAttribute(MuicSelect.SEARCH_ATTRIBUTE));
         const $options = this.querySelectorAll('option');
         $options.forEach($option => {
@@ -143,6 +157,7 @@ class MuicSelect extends HTMLElement {
      */
     renderSelectionsContainer() {
         let isEmpty = true;
+        let selectedOptionsStr = '';
         this.options.forEach(option => {
             var _a;
             const selected = option.selected;
@@ -153,6 +168,7 @@ class MuicSelect extends HTMLElement {
                 return;
             }
             isEmpty = false;
+            selectedOptionsStr += `<option value=${option.value} selected></option>`;
             // Return if the option already has selection option
             if (option.$selectionElement)
                 return;
@@ -160,6 +176,8 @@ class MuicSelect extends HTMLElement {
             option.$selectionElement = this.createSelectionItem(option);
             this.$selectionContainer.appendChild(option.$selectionElement);
         });
+        // Update select native element to update form data
+        this.$select.innerHTML = selectedOptionsStr;
         const $emptySelection = this.querySelector('.muic-empty-selection');
         // If selections are empty and placeholder not created
         if (isEmpty && !$emptySelection)

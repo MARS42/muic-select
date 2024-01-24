@@ -34,15 +34,17 @@ class MuicSelect extends HTMLElement {
     private $selectionTemplate: HTMLTemplateElement;
     private $optionTemplate: HTMLTemplateElement;
 
+    private $select: HTMLSelectElement;
+
     private $optionsContainer: HTMLElement;
     private $optionsSearch: HTMLElement;
     private $optionsList: HTMLElement;
     private $optionsActions: HTMLElement;
-    private $btnSelectAll: HTMLElement;
-    private $btnDeselectAll: HTMLElement;
+    private $btnSelectAll: HTMLButtonElement;
+    private $btnDeselectAll: HTMLButtonElement;
 
     private $selectionContainer: HTMLElement;
-    private $clearSelection: HTMLElement;
+    private $clearSelection: HTMLButtonElement;
     private $optionsSearchInput: HTMLInputElement;
 
     private showingOptions: boolean = false;
@@ -60,6 +62,13 @@ class MuicSelect extends HTMLElement {
         this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, false);
         this.attrs.set(MuicSelect.SEARCH_ATTRIBUTE, false);
 
+        this.$select = document.createElement('select');
+        this.$select.multiple = true;
+        this.$select.hidden = true;
+        if (this.hasAttribute('id')) this.$select.id = this.getAttribute('id');
+        if (this.hasAttribute('name')) this.$select.name = this.getAttribute('name');
+        this.parentElement?.insertBefore(this.$select, this);
+
         this.$selectionTemplate = this.querySelector(MuicSelect.SELECTION_TEMPLATE);
         this.$optionTemplate = this.querySelector(MuicSelect.OPTION_TEMPLATE);
 
@@ -76,6 +85,10 @@ class MuicSelect extends HTMLElement {
         const $btnClose = document.createElement('button');
         this.$btnSelectAll = document.createElement('button');
         this.$btnDeselectAll = document.createElement('button');
+
+        $btnClose.type = 'button';
+        this.$btnSelectAll.type = 'button';
+        this.$btnDeselectAll.type = 'button';
 
         $btnClose.innerText = 'Close';
         this.$btnSelectAll.innerText = 'Select all';
@@ -103,6 +116,7 @@ class MuicSelect extends HTMLElement {
             this.toggleOptions(!this.showingOptions);
         });
         this.$clearSelection = document.createElement('button');
+        this.$clearSelection.type = 'button';
         this.$clearSelection.innerText = 'Clear';
         this.$clearSelection.classList.add(MuicSelect.CLEAR_SELECTION_CLASS);
         this.$selectionContainer.appendChild(this.$clearSelection);
@@ -136,8 +150,10 @@ class MuicSelect extends HTMLElement {
 
     private connectedCallback() {
 
-        this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE, this.getAttribute(MuicSelect.PLACEHOLDER_ATTRIBUTE));
-        this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, this.hasAttribute(MuicSelect.MULTIPLE_ATTRIBUTE));
+        this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, this.hasAttribute(MuicSelect.MULTIPLE_ATTRIBUTE) ?? false);
+        this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE,
+            this.getAttribute(MuicSelect.PLACEHOLDER_ATTRIBUTE) ??
+            (this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) ? 'Select one or more' : 'Select one'));
         this.attrs.set(MuicSelect.SEARCH_ATTRIBUTE, this.hasAttribute(MuicSelect.SEARCH_ATTRIBUTE));
 
         const $options: NodeListOf<HTMLOptionElement> = this.querySelectorAll('option');
@@ -224,6 +240,8 @@ class MuicSelect extends HTMLElement {
     private renderSelectionsContainer() {
 
         let isEmpty: boolean = true;
+        let selectedOptionsStr: string = '';
+
         this.options.forEach(option => {
             const selected: boolean = option.selected;
 
@@ -235,6 +253,7 @@ class MuicSelect extends HTMLElement {
             }
 
             isEmpty = false;
+            selectedOptionsStr += `<option value=${option.value} selected></option>`;
 
             // Return if the option already has selection option
             if (option.$selectionElement) return;
@@ -243,6 +262,9 @@ class MuicSelect extends HTMLElement {
             option.$selectionElement = this.createSelectionItem(option);
             this.$selectionContainer.appendChild(option.$selectionElement);
         });
+
+        // Update select native element to update form data
+        this.$select.innerHTML = selectedOptionsStr;
 
         const $emptySelection = this.querySelector('.muic-empty-selection');
 
@@ -301,7 +323,7 @@ class MuicSelect extends HTMLElement {
      */
     selectOption(option: MuiSelectOption, select: boolean, render: boolean = true) {
 
-        const selectedOptions = this.selectedOptions();
+        const selectedOptions: MuiSelectOption[] = this.selectedOptions();
         if (option.selected == false
             && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false
             && selectedOptions.length > 0) {
