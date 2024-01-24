@@ -99,6 +99,7 @@ class MuicSelect extends HTMLElement {
         this.$selectionContainer = document.createElement('div');
         this.$selectionContainer.classList.add(MuicSelect.SELECTION_CLASS);
         this.$selectionContainer.addEventListener('click', (event) => {
+            event.stopPropagation();
             this.toggleOptions(!this.showingOptions);
         });
         this.$clearSelection = document.createElement('button');
@@ -275,11 +276,21 @@ class MuicSelect extends HTMLElement {
             this.$optionsContainer.setAttribute('open', '');
             this.$selectionContainer.setAttribute('active', '');
             this.$optionsSearchInput.focus();
+
+            document.addEventListener('click', this.backdropClick);
             MuicSelect.CURRENT_INSTANCE = this;
         } else {
             this.$optionsContainer.removeAttribute('open');
             this.$selectionContainer.removeAttribute('active');
+            document.removeEventListener('click', this.backdropClick);
         }
+    }
+
+    backdropClick(event: MouseEvent) {
+        const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY)
+            ?.closest(MuicSelect.SELECTOR);
+        if (elementUnderMouse) return;
+        MuicSelect.CURRENT_INSTANCE?.toggleOptions(false);
     }
 
     /**

@@ -38,6 +38,7 @@ class MuicSelect extends HTMLElement {
         this.$selectionContainer = document.createElement('div');
         this.$selectionContainer.classList.add(MuicSelect.SELECTION_CLASS);
         this.$selectionContainer.addEventListener('click', (event) => {
+            event.stopPropagation();
             this.toggleOptions(!this.showingOptions);
         });
         this.$clearSelection = document.createElement('button');
@@ -187,12 +188,21 @@ class MuicSelect extends HTMLElement {
             this.$optionsContainer.setAttribute('open', '');
             this.$selectionContainer.setAttribute('active', '');
             this.$optionsSearchInput.focus();
+            document.addEventListener('click', this.backdropClick);
             MuicSelect.CURRENT_INSTANCE = this;
         }
         else {
             this.$optionsContainer.removeAttribute('open');
             this.$selectionContainer.removeAttribute('active');
+            document.removeEventListener('click', this.backdropClick);
         }
+    }
+    backdropClick(event) {
+        var _a, _b;
+        const elementUnderMouse = (_a = document.elementFromPoint(event.clientX, event.clientY)) === null || _a === void 0 ? void 0 : _a.closest(MuicSelect.SELECTOR);
+        if (elementUnderMouse)
+            return;
+        (_b = MuicSelect.CURRENT_INSTANCE) === null || _b === void 0 ? void 0 : _b.toggleOptions(false);
     }
     /**
      * Selects an option and updates the selection bar
