@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "noImplicitAny": true,
     "sourceMap": true,
-    "target": "es6"
+    "target": "ES6",
   },
   "files": [ "./muic-select.ts" ],
   "compileOnSave": true

@@ -79,6 +79,7 @@
 
 .muic-select-selection-item.muic-empty-selection {
     background-color: transparent;
+    opacity: 0.6;
 }
 
 .muic-select-clear-selection {
@@ -100,8 +101,12 @@
 
 .muic-select-options-actions {
     gap: 4px;
+    justify-content: end;
+    flex-wrap: wrap;
 }
 
-.muic-select-options-actions > button {
-    flex-grow: 1;
-}
+    .muic-select-options-actions > button {
+        flex-grow: 1;
+        width: 130px;
+        max-width: 130px;
+    }
