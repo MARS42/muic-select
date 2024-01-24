@@ -50,7 +50,7 @@ class MuicSelect extends HTMLElement {
         const selectionSizeObserver = new ResizeObserver((entries) => {
             /*this.$optionsContainer.style.translate
                 = `0 ${this.$selectionContainer.offsetHeight + 4}px`;*/
-            this.$optionsContainer.style.width = this.$selectionContainer.offsetWidth + 'px';
+            this.$optionsContainer.style.width = (this.$selectionContainer.offsetWidth - 8) + 'px';
         });
         selectionSizeObserver.observe(this.$selectionContainer);
         // Events
