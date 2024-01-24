@@ -87,13 +87,26 @@ class MuicSelect extends HTMLElement {
         this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE, (_b = this.getAttribute(MuicSelect.PLACEHOLDER_ATTRIBUTE)) !== null && _b !== void 0 ? _b : (this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) ? 'Select one or more' : 'Select one'));
         this.attrs.set(MuicSelect.SEARCH_ATTRIBUTE, this.hasAttribute(MuicSelect.SEARCH_ATTRIBUTE));
         const $options = this.querySelectorAll('option');
+        // Initialize native options
         $options.forEach($option => {
-            this.options.push({
+            const option = {
                 value: $option.value,
                 label: $option.innerText,
+                $element: $option,
                 selected: false,
+            };
+            this.options.push(option);
+            // Add click event to option
+            $option.addEventListener('click', (event) => {
+                this.selectOption(option, !option.selected);
+                if (option.selected
+                    && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false) {
+                    this.toggleOptions(false);
+                }
             });
-            this.removeChild($option);
+            $option.classList.add(MuicSelect.OPTIONS_CONTAINER_ITEM_CLASS);
+            // Move to options list
+            this.$optionsList.appendChild($option);
         });
         if (this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false) {
             this.$btnSelectAll.setAttribute('hidden', '');
@@ -108,16 +121,15 @@ class MuicSelect extends HTMLElement {
      * Renders options list
      */
     renderOptionsContainer() {
-        while (this.$optionsList.firstChild) {
-            this.$optionsList.removeChild(this.$optionsList.firstChild);
-        }
+        // For each option, create a option element
         this.options.forEach(option => {
+            // Return if the option already has item element in options list
+            if (option.$element)
+                return;
             const $option = document.createElement('option');
             $option.classList.add(MuicSelect.OPTIONS_CONTAINER_ITEM_CLASS);
             $option.value = option.value;
             $option.innerText = option.label;
-            this.$optionsList.appendChild($option);
-            option.$element = $option;
             $option.addEventListener('click', (event) => {
                 this.selectOption(option, !option.selected);
                 if (option.selected
@@ -125,6 +137,8 @@ class MuicSelect extends HTMLElement {
                     this.toggleOptions(false);
                 }
             });
+            option.$element = $option;
+            this.$optionsList.appendChild($option);
         });
     }
     /**
