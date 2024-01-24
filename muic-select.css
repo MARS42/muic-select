@@ -95,9 +95,17 @@
     padding: 4px;
 }
 
-.muic-select-options-search > input {
-    flex-grow: 1;
-}
+    .muic-select-options-search > input {
+        flex-grow: 1;
+        padding: 8px 12px;
+        border: 1px solid #d4d4d4;
+        border-radius: 4px;
+        outline: none !important;
+    }
+
+    .muic-select-options-search > input:focus {
+        border-color: gray;
+    }
 
 .muic-select-options-actions {
     gap: 4px;

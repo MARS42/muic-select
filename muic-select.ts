@@ -67,6 +67,7 @@ class MuicSelect extends HTMLElement {
 
         this.$optionsSearch = document.createElement('div');
         this.$optionsSearchInput = document.createElement('input');
+        this.$optionsSearchInput.placeholder = 'Search...';
         this.$optionsSearch.appendChild(this.$optionsSearchInput);
 
         this.$optionsList = document.createElement('div');
@@ -115,10 +116,6 @@ class MuicSelect extends HTMLElement {
             this.$optionsContainer.style.width = this.$selectionContainer.offsetWidth + 'px';
         });
         selectionSizeObserver.observe(this.$selectionContainer);
-
-        this.$optionsContainer.addEventListener('focusout', () => {
-            console.log('out');
-        });
 
         // Events
         this.$clearSelection.addEventListener('click', (event) => {
@@ -277,7 +274,7 @@ class MuicSelect extends HTMLElement {
 
             this.$optionsContainer.setAttribute('open', '');
             this.$selectionContainer.setAttribute('active', '');
-            this.$optionsContainer.focus();
+            this.$optionsSearchInput.focus();
             MuicSelect.CURRENT_INSTANCE = this;
         } else {
             this.$optionsContainer.removeAttribute('open');
