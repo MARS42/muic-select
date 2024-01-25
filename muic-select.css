@@ -58,9 +58,16 @@
     box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
     position: relative;
     width: 100%;
-    margin-bottom: 30px;
-
+    
     transition: background-color 200ms ease-in-out;
+}
+
+muic-select > .muic-select-selection {
+    margin-bottom: 4px;
+}
+
+muic-select[multiple] > .muic-select-selection {
+    margin-bottom: 30px;
 }
 
 .muic-select-selection:hover, .muic-select-selection[active] {
@@ -72,10 +79,21 @@
     background-color: #ffb06c;
     user-select: none;
     padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+muic-select > .muic-select-selection > .muic-select-selection-item {
+    flex-grow: 1;
+}
+
+muic-select[multiple] > .muic-select-selection > .muic-select-selection-item {
+    flex-grow: initial;
 }
 
 .muic-select-selection-item > span {
-    margin-right: 4px;
+    margin-right: 6px;
 }
 
 .muic-select-selection-item.muic-empty-selection {
@@ -89,6 +107,13 @@
     right: 0;
     transform: translate(0, calc(100% + 4px));
     width: 80px;
+}
+
+muic-select > .muic-select-selection > .muic-select-clear-selection {
+    display: none;
+}
+muic-select[multiple] > .muic-select-selection > .muic-select-clear-selection {
+    display: initial;
 }
 
 .muic-select-options-search, .muic-select-options-actions {
