@@ -1,6 +1,20 @@
 ﻿muic-select {
     position: relative;
     display: block;
+    margin-bottom: 4px;
+}
+
+muic-select[multiple] {
+    margin-bottom: 30px;
+}
+
+muic-select > select {
+    position: absolute;
+    left: 50%;
+    bottom: -4px;
+    opacity: 0;
+    translate: -50% 0;
+    pointer-events: none;
 }
 
 /* Options */
@@ -62,13 +76,7 @@
     transition: background-color 200ms ease-in-out;
 }
 
-muic-select > .muic-select-selection {
-    margin-bottom: 4px;
-}
 
-muic-select[multiple] > .muic-select-selection {
-    margin-bottom: 30px;
-}
 
 .muic-select-selection:hover, .muic-select-selection[active] {
     background-color: #eaeaea;

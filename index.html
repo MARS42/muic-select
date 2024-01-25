@@ -44,9 +44,9 @@
 
     <strong>Form</strong>
     <form id="form">
-        <input type="text" id="name" name="name" value="name" />
+        <input type="text" id="name" name="name" value="name" required/>
         <label for="form-select">
-            <muic-select id="form-select" name="form-select" multiple>
+            <muic-select id="form-select" name="form-select" multiple required>
                 <option value="1">OPT 1</option>
                 <option value="2">OPT 2</option>
                 <option value="3">OPT 3</option>
@@ -64,21 +64,22 @@
 
     <script>
         const $form = document.getElementById('form');
+        const s = document.getElementById('form-select');
+        s.addEventListener('invalid', (e) => console.log(e));
+        s.addEventListener('change', (e) => console.log(e));
+        s.addEventListener('open', (e) => console.log(e));
+        s.addEventListener('close', (e) => console.log(e));
 
         $form.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            console.log($form.checkValidity());
             const formData = new FormData($form);
             fetch('/', {
                 method: 'POST',
                 body: formData
             });
         });
-
-        setTimeout(function () {
-            const $select = document.getElementById('form-select');
-            $select.value = ['1', '2'];
-            $select.dispatchEvent(new Event('change'));
-        }, 1000);
     </script>
 </body>
 </html>

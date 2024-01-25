@@ -64,10 +64,15 @@ class MuicSelect extends HTMLElement {
 
         this.$select = document.createElement('select');
         this.$select.multiple = true;
-        this.$select.hidden = true;
-        if (this.hasAttribute('id')) this.$select.id = this.getAttribute('id');
+        //this.$select.style.opacity = '0';
+        this.$select.addEventListener('invalid', (event) => {
+            this.dispatchEvent(new Event('invalid', event));
+        });
+
         if (this.hasAttribute('name')) this.$select.name = this.getAttribute('name');
-        this.parentElement?.insertBefore(this.$select, this);
+        if (this.hasAttribute('required')) this.$select.required = true;
+        //this.parentElement?.insertAdjacentElement(this.$select, this);
+        //this.insertAdjacentElement('beforeend', this.$select);
 
         this.$selectionTemplate = this.querySelector(MuicSelect.SELECTION_TEMPLATE);
         this.$optionTemplate = this.querySelector(MuicSelect.OPTION_TEMPLATE);
@@ -123,6 +128,7 @@ class MuicSelect extends HTMLElement {
 
         this.appendChild(this.$optionsContainer);
         this.appendChild(this.$selectionContainer);
+        this.appendChild(this.$select);
 
         // Observer to selections height
         const selectionSizeObserver: ResizeObserver = new ResizeObserver((entries) => {
@@ -141,6 +147,11 @@ class MuicSelect extends HTMLElement {
         $btnClose.addEventListener('click', () => this.toggleOptions(false));
         this.$btnSelectAll.addEventListener('click', () => this.selectAllOptions());
         this.$btnDeselectAll.addEventListener('click', () => this.deselectAllOptions());
+
+        /*const mut: MutationObserver = new MutationObserver((mutations) => {
+            console.log(mutations);
+        });
+        mut.observe(this.$selectionContainer, { childList: false, subtree: false, attributes: true,  });*/
     }
 
     private attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -172,6 +183,7 @@ class MuicSelect extends HTMLElement {
             // Add click event to option
             $option.addEventListener('click', (event) => {
                 this.selectOption(option, !option.selected);
+                this.triggerEvent('change');
                 if (option.selected
                     && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false) {
                     this.toggleOptions(false);
@@ -213,6 +225,7 @@ class MuicSelect extends HTMLElement {
             $option.innerText = option.label;
             $option.addEventListener('click', (event) => {
                 this.selectOption(option, !option.selected);
+                this.triggerEvent('change');
                 if (option.selected
                     && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false) {
                     this.toggleOptions(false);
@@ -246,6 +259,7 @@ class MuicSelect extends HTMLElement {
         $button.addEventListener('click', (event) => {
             event.stopPropagation();
             this.selectOption(option, false);
+            this.triggerEvent('change');
         });
 
         empty.appendChild($span);
@@ -257,7 +271,6 @@ class MuicSelect extends HTMLElement {
      * Renders selection bar
      */
     private renderSelectionsContainer() {
-
         let isEmpty: boolean = true;
         let selectedOptionsStr: string = '';
 
@@ -320,10 +333,12 @@ class MuicSelect extends HTMLElement {
 
             document.addEventListener('click', this.backdropClick);
             MuicSelect.CURRENT_INSTANCE = this;
+            this.triggerEvent('open');
         } else {
             this.$optionsContainer.removeAttribute('open');
             this.$selectionContainer.removeAttribute('active');
             document.removeEventListener('click', this.backdropClick);
+            this.triggerEvent('close');
         }
     }
 
@@ -339,6 +354,7 @@ class MuicSelect extends HTMLElement {
      * @param option Option to change selection property
      * @param select Value to set
      * @param [render=true] If is false, {@link renderSelectionsContainer} must be called manually
+     * @param notify If is true dispatches a change event
      */
     selectOption(option: MuiSelectOption, select: boolean, render: boolean = true) {
 
@@ -362,11 +378,13 @@ class MuicSelect extends HTMLElement {
     selectAllOptions() {
         this.options.forEach(option => this.selectOption(option, true, false));
         this.renderSelectionsContainer();
+        this.triggerEvent('change');
     }
 
     deselectAllOptions() {
         this.options.forEach(option => this.selectOption(option, false, false));
         this.renderSelectionsContainer();
+        this.triggerEvent('change');
     }
 
     /**
@@ -382,6 +400,19 @@ class MuicSelect extends HTMLElement {
             this.selectOption(option, false, false);
         });
         this.renderSelectionsContainer();
+        this.triggerEvent('change');
+    }
+
+    triggerEvent(name: 'change' | 'open' | 'close') {
+
+        if (name == 'change') {
+            const event = new CustomEvent(name, { detail: { selected: this.selectedOptions() } });
+            this.dispatchEvent(event);
+            return;
+        }
+
+        const event = new Event(name);
+        this.dispatchEvent(event);
     }
 }
 
