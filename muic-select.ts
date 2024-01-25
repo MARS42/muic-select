@@ -51,6 +51,11 @@ class MuicSelect extends HTMLElement {
     private attrs: Map<string, any> = new Map();
     private options: MuiSelectOption[] = [];
 
+    private filterCriteria: (query: string, option: MuiSelectOption) => boolean;
+    private filterCriteriaDefault(query: string, option: MuiSelectOption): boolean {
+        return option.label.toLowerCase().includes(query.toLowerCase());
+    }
+
     static get observedAttributes() {
         return [this.PLACEHOLDER_ATTRIBUTE, this.MULTIPLE_ATTRIBUTE];
     }
@@ -148,10 +153,20 @@ class MuicSelect extends HTMLElement {
         this.$btnSelectAll.addEventListener('click', () => this.selectAllOptions());
         this.$btnDeselectAll.addEventListener('click', () => this.deselectAllOptions());
 
-        /*const mut: MutationObserver = new MutationObserver((mutations) => {
-            console.log(mutations);
-        });
-        mut.observe(this.$selectionContainer, { childList: false, subtree: false, attributes: true,  });*/
+        this.filterCriteria = this.filterCriteriaDefault;
+        const debounce = (fn: () => void, d = 300) => {
+            let timer: number;
+            return () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    fn();
+                }, d);
+            };
+        };
+
+        const debounced = debounce(() => this.searchAndFilterOptions());
+
+        this.$optionsSearchInput.addEventListener('keyup', debounced);
     }
 
     private attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -206,6 +221,12 @@ class MuicSelect extends HTMLElement {
         }
 
         this.render();
+    }
+
+    private searchAndFilterOptions() {
+        const query: string = this.$optionsSearchInput.value;
+        const filteredOptions: MuiSelectOption[] = this.options.filter(option => this.filterCriteria(query, option));
+        console.log(filteredOptions);
     }
 
     /**

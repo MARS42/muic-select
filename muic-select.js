@@ -1,4 +1,7 @@
 class MuicSelect extends HTMLElement {
+    filterCriteriaDefault(query, option) {
+        return option.label.toLowerCase().includes(query.toLowerCase());
+    }
     static get observedAttributes() {
         return [this.PLACEHOLDER_ATTRIBUTE, this.MULTIPLE_ATTRIBUTE];
     }
@@ -79,10 +82,18 @@ class MuicSelect extends HTMLElement {
         $btnClose.addEventListener('click', () => this.toggleOptions(false));
         this.$btnSelectAll.addEventListener('click', () => this.selectAllOptions());
         this.$btnDeselectAll.addEventListener('click', () => this.deselectAllOptions());
-        /*const mut: MutationObserver = new MutationObserver((mutations) => {
-            console.log(mutations);
-        });
-        mut.observe(this.$selectionContainer, { childList: false, subtree: false, attributes: true,  });*/
+        this.filterCriteria = this.filterCriteriaDefault;
+        const debounce = (fn, d = 300) => {
+            let timer;
+            return () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    fn();
+                }, d);
+            };
+        };
+        const debounced = debounce(() => this.searchAndFilterOptions());
+        this.$optionsSearchInput.addEventListener('keyup', debounced);
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (newValue === oldValue)
@@ -125,6 +136,11 @@ class MuicSelect extends HTMLElement {
             this.$optionsSearch.style.display = 'none';
         }
         this.render();
+    }
+    searchAndFilterOptions() {
+        const query = this.$optionsSearchInput.value;
+        const filteredOptions = this.options.filter(option => this.filterCriteria(query, option));
+        console.log(filteredOptions);
     }
     /**
      * Renders options list

@@ -42,9 +42,22 @@
         <option value="VALUE 2">TEXT 2</option>
     </muic-select>
 
+    <strong>Single search</strong>
+    <muic-select selected="VALUE" placeholder="PLACEHOLDER" search>
+        <template class="muic-selection">
+        </template>
+        <template class="muic-option">
+        </template>
+        <option value="VALUE">TEXT</option>
+        <option value="VALUE 2">TEXT 2</option>
+        <option value="VALUE 2">TEXT 2</option>
+        <option value="VALUE 2">TEXT 2</option>
+        <option value="VALUE 2">TEXT 2</option>
+    </muic-select>
+
     <strong>Form</strong>
     <form id="form">
-        <input type="text" id="name" name="name" value="name" required/>
+        <input type="text" id="name" name="name" value="name" required />
         <label for="form-select">
             <muic-select id="form-select" name="form-select" multiple required>
                 <option value="1">OPT 1</option>
