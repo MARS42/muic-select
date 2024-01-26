@@ -129,17 +129,21 @@ muic-select[multiple] > .muic-select-selection > .muic-select-clear-selection {
     padding: 4px;
 }
 
-    .muic-select-options-search > input {
-        flex-grow: 1;
-        padding: 8px 12px;
-        border: 1px solid #d4d4d4;
-        border-radius: 4px;
-        outline: none !important;
-    }
+.muic-select-options-search > input {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: 1px solid #d4d4d4;
+    border-radius: 4px;
+    outline: none !important;
+}
 
-    .muic-select-options-search > input:focus {
-        border-color: gray;
-    }
+.muic-select-options-search > input:focus {
+    border-color: gray;
+}
+
+.muic-select-options-list:empty + .muic-select-options-actions {
+    display: none;
+}
 
 .muic-select-options-actions {
     gap: 4px;
@@ -147,8 +151,8 @@ muic-select[multiple] > .muic-select-selection > .muic-select-clear-selection {
     flex-wrap: wrap;
 }
 
-    .muic-select-options-actions > button {
-        flex-grow: 1;
-        width: 130px;
-        max-width: 130px;
-    }
+.muic-select-options-actions > button {
+    flex-grow: 1;
+    width: 130px;
+    max-width: 130px;
+}

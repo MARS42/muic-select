@@ -1,4 +1,4 @@
-﻿interface MuiSelectOption {
+﻿interface MuicSelectOption {
     value: string,
     label: string,
     // DOM Element in option list
@@ -8,15 +8,23 @@
     selected: boolean,
 }
 
+interface MuicSelectConfig {
+    multiple?: boolean,
+    placeholder?: string,
+    search?: boolean,
+}
+
+enum MuicSelectAttribute {
+    MULTIPLE = 'multiple',
+    PLACEHOLDER = 'placeholder',
+    SEARCH = 'search',
+}
+
 class MuicSelect extends HTMLElement {
 
     static CURRENT_INSTANCE?: MuicSelect;
 
     static SELECTOR: string = 'muic-select';
-
-    static PLACEHOLDER_ATTRIBUTE: string = 'placeholder';
-    static MULTIPLE_ATTRIBUTE: string = 'multiple';
-    static SEARCH_ATTRIBUTE: string = 'search';
 
     static SELECTION_TEMPLATE: string = 'template.muic-selection';
     static OPTION_TEMPLATE: string = 'template.muic-option';
@@ -47,37 +55,40 @@ class MuicSelect extends HTMLElement {
     private $clearSelection: HTMLButtonElement;
     private $optionsSearchInput: HTMLInputElement;
 
-    private showingOptions: boolean = false;
-    private attrs: Map<string, any> = new Map();
-    private options: MuiSelectOption[] = [];
+    private selectionSizeObserver: ResizeObserver;
 
-    private filterCriteria: (query: string, option: MuiSelectOption) => boolean;
-    private filterCriteriaDefault(query: string, option: MuiSelectOption): boolean {
+    private showingOptions: boolean = false;
+    //private attrs: Map<string, any> = new Map();
+
+    private config: MuicSelectConfig;
+    //private a: Map<MuicSelectAttribute, any> = new Map();
+    private options: MuicSelectOption[] = [];
+
+    private filterCriteria: (query: string, option: MuicSelectOption) => boolean;
+    private filterCriteriaDefault(query: string, option: MuicSelectOption): boolean {
         return option.label.toLowerCase().includes(query.toLowerCase());
     }
 
     static get observedAttributes() {
-        return [this.PLACEHOLDER_ATTRIBUTE, this.MULTIPLE_ATTRIBUTE];
+        return [MuicSelectAttribute.PLACEHOLDER, MuicSelectAttribute.MULTIPLE, MuicSelectAttribute.SEARCH];
     }
 
-    constructor() {
+    constructor(config?: MuicSelectConfig) {
         super();
-
-        this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE, '');
-        this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, false);
-        this.attrs.set(MuicSelect.SEARCH_ATTRIBUTE, false);
+        this.config = config ?? {
+            multiple: false,
+            placeholder: 'Select one',
+            search: false,
+        };
 
         this.$select = document.createElement('select');
         this.$select.multiple = true;
-        //this.$select.style.opacity = '0';
         this.$select.addEventListener('invalid', (event) => {
             this.dispatchEvent(new Event('invalid', event));
         });
 
         if (this.hasAttribute('name')) this.$select.name = this.getAttribute('name');
         if (this.hasAttribute('required')) this.$select.required = true;
-        //this.parentElement?.insertAdjacentElement(this.$select, this);
-        //this.insertAdjacentElement('beforeend', this.$select);
 
         this.$selectionTemplate = this.querySelector(MuicSelect.SELECTION_TEMPLATE);
         this.$optionTemplate = this.querySelector(MuicSelect.OPTION_TEMPLATE);
@@ -135,24 +146,23 @@ class MuicSelect extends HTMLElement {
         this.appendChild(this.$selectionContainer);
         this.appendChild(this.$select);
 
-        // Observer to selections height
-        const selectionSizeObserver: ResizeObserver = new ResizeObserver((entries) => {
-            /*this.$optionsContainer.style.translate
-                = `0 ${this.$selectionContainer.offsetHeight + 4}px`;*/
+        this.selectionSizeObserver = new ResizeObserver((entries) => {
             this.$optionsContainer.style.width = (this.$selectionContainer.offsetWidth - 8) + 'px';
         });
-        selectionSizeObserver.observe(this.$selectionContainer);
+        this.selectionSizeObserver.observe(this.$selectionContainer);
 
-        // Events
+        // Event to clear selection
         this.$clearSelection.addEventListener('click', (event) => {
             event.stopPropagation();
             this.deselectAllOptions();
         });
 
+        // Events to close, select all and deselect all
         $btnClose.addEventListener('click', () => this.toggleOptions(false));
         this.$btnSelectAll.addEventListener('click', () => this.selectAllOptions());
         this.$btnDeselectAll.addEventListener('click', () => this.deselectAllOptions());
 
+        // Set default filter criteria and debounce
         this.filterCriteria = this.filterCriteriaDefault;
         const debounce = (fn: () => void, d = 300) => {
             let timer: number;
@@ -164,30 +174,51 @@ class MuicSelect extends HTMLElement {
             };
         };
 
+        // Debounce search input
         const debounced = debounce(() => this.searchAndFilterOptions());
-
         this.$optionsSearchInput.addEventListener('keyup', debounced);
     }
 
-    private attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    private attributeChangedCallback(name: MuicSelectAttribute, oldValue: string, newValue: string) {
         if (newValue === oldValue) return;
-        this.attrs.set(name, newValue);
+        switch (name) {
+            case MuicSelectAttribute.MULTIPLE:
+                this.config.multiple = this.hasAttribute(MuicSelectAttribute.MULTIPLE);
+                this.updateAttributes();
+                console.log('multiple changed', this.hasAttribute(MuicSelectAttribute.MULTIPLE));
+                break;
+            case MuicSelectAttribute.PLACEHOLDER:
+                this.config.placeholder = newValue;
+                console.log('placeholder changed');
+                break;
+            case MuicSelectAttribute.SEARCH:
+                this.config.search = this.hasAttribute(MuicSelectAttribute.SEARCH);
+                this.updateAttributes();
+                console.log('search changed', this.hasAttribute(MuicSelectAttribute.SEARCH));
+                break;
+        }
+    }
+
+    private updateAttributes() {
+        if (!this.config.multiple) {
+            this.$btnSelectAll.setAttribute('hidden', '');
+            this.$btnDeselectAll.setAttribute('hidden', '');
+        } else {
+            this.$btnSelectAll.removeAttribute('hidden');
+            this.$btnDeselectAll.removeAttribute('hidden');
+        }
+
+        this.$optionsSearch.style.display = !this.config.search ? 'none' : 'flex';
     }
 
     private connectedCallback() {
-
-        this.attrs.set(MuicSelect.MULTIPLE_ATTRIBUTE, this.hasAttribute(MuicSelect.MULTIPLE_ATTRIBUTE) ?? false);
-        this.attrs.set(MuicSelect.PLACEHOLDER_ATTRIBUTE,
-            this.getAttribute(MuicSelect.PLACEHOLDER_ATTRIBUTE) ??
-            (this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) ? 'Select one or more' : 'Select one'));
-        this.attrs.set(MuicSelect.SEARCH_ATTRIBUTE, this.hasAttribute(MuicSelect.SEARCH_ATTRIBUTE));
 
         const $options: NodeListOf<HTMLOptionElement> = this.querySelectorAll('option');
 
         // Initialize native options
         $options.forEach($option => {
 
-            const option: MuiSelectOption = {
+            const option: MuicSelectOption = {
                 value: $option.value,
                 label: $option.innerText,
                 $element: $option,
@@ -200,7 +231,7 @@ class MuicSelect extends HTMLElement {
                 this.selectOption(option, !option.selected);
                 this.triggerEvent('change');
                 if (option.selected
-                    && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false) {
+                    && !this.config.multiple) {
                     this.toggleOptions(false);
                 }
             });
@@ -211,21 +242,17 @@ class MuicSelect extends HTMLElement {
             this.$optionsList.appendChild($option);
         });
 
-        if (this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false) {
-            this.$btnSelectAll.setAttribute('hidden', '');
-            this.$btnDeselectAll.setAttribute('hidden', '');
-        }
-
-        if (this.attrs.get(MuicSelect.SEARCH_ATTRIBUTE) == false) {
-            this.$optionsSearch.style.display = 'none';
-        }
-
+        this.updateAttributes();
         this.render();
+    }
+
+    private disconnectedCallback() {
+        
     }
 
     private searchAndFilterOptions() {
         const query: string = this.$optionsSearchInput.value;
-        const filteredOptions: MuiSelectOption[] = this.options.filter(option => this.filterCriteria(query, option));
+        const filteredOptions: MuicSelectOption[] = this.options.filter(option => this.filterCriteria(query, option));
         console.log(filteredOptions);
     }
 
@@ -248,7 +275,7 @@ class MuicSelect extends HTMLElement {
                 this.selectOption(option, !option.selected);
                 this.triggerEvent('change');
                 if (option.selected
-                    && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false) {
+                    && !this.config.multiple) {
                     this.toggleOptions(false);
                 }
             });
@@ -263,13 +290,13 @@ class MuicSelect extends HTMLElement {
      * @param option Option to create selection item
      * @returns Selection item, if the option is empty, returns placeholder
      */
-    private createSelectionItem(option?: MuiSelectOption): HTMLElement {
+    private createSelectionItem(option?: MuicSelectOption): HTMLElement {
         const empty = document.createElement('div');
         empty.classList.add(MuicSelect.SELECTION_ITEM_CLASS);
 
         if (!option) {
             empty.classList.add('muic-empty-selection');
-            empty.innerHTML = this.attrs.get(MuicSelect.PLACEHOLDER_ATTRIBUTE);
+            empty.innerHTML = this.config.placeholder;
             return empty;
         }
 
@@ -377,11 +404,11 @@ class MuicSelect extends HTMLElement {
      * @param [render=true] If is false, {@link renderSelectionsContainer} must be called manually
      * @param notify If is true dispatches a change event
      */
-    selectOption(option: MuiSelectOption, select: boolean, render: boolean = true) {
+    selectOption(option: MuicSelectOption, select: boolean, render: boolean = true) {
 
-        const selectedOptions: MuiSelectOption[] = this.selectedOptions();
+        const selectedOptions: MuicSelectOption[] = this.selectedOptions();
         if (option.selected == false
-            && this.attrs.get(MuicSelect.MULTIPLE_ATTRIBUTE) == false
+            && !this.config.multiple
             && selectedOptions.length > 0) {
             selectedOptions.forEach(selectedOption => this.selectOption(selectedOption, false));
         }
@@ -412,7 +439,7 @@ class MuicSelect extends HTMLElement {
      * Gets selected options
      * @returns Selected options
      */
-    selectedOptions(): MuiSelectOption[] {
+    selectedOptions(): MuicSelectOption[] {
         return this.options.filter(o => o.selected);
     }
 
