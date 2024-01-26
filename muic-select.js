@@ -14,8 +14,8 @@ class MuicSelect extends HTMLElement {
     constructor(config) {
         super();
         this.showingOptions = false;
-        //private a: Map<MuicSelectAttribute, any> = new Map();
         this.options = [];
+        this.filteredOptions = [];
         this.config = config !== null && config !== void 0 ? config : {
             multiple: false,
             placeholder: 'Select one',
@@ -69,6 +69,9 @@ class MuicSelect extends HTMLElement {
         this.$clearSelection.innerText = 'Clear';
         this.$clearSelection.classList.add(MuicSelect.CLEAR_SELECTION_CLASS);
         this.$selectionContainer.appendChild(this.$clearSelection);
+        this.$emptyOptions = document.createElement('span');
+        this.$emptyOptions.innerText = 'No options';
+        this.$emptyOptions.classList.add(MuicSelect.EMPTY_OPTIONS_CONTAINER_ITEM_CLASS);
         this.appendChild(this.$optionsContainer);
         this.appendChild(this.$selectionContainer);
         this.appendChild(this.$select);
@@ -83,6 +86,7 @@ class MuicSelect extends HTMLElement {
         });
         // Events to close, select all and deselect all
         $btnClose.addEventListener('click', () => this.toggleOptions(false));
+        this.$emptyOptions.addEventListener('click', () => this.toggleOptions(false));
         this.$btnSelectAll.addEventListener('click', () => this.selectAllOptions());
         this.$btnDeselectAll.addEventListener('click', () => this.deselectAllOptions());
         // Set default filter criteria and debounce
@@ -97,7 +101,7 @@ class MuicSelect extends HTMLElement {
             };
         };
         // Debounce search input
-        const debounced = debounce(() => this.searchAndFilterOptions());
+        const debounced = debounce(() => this.filterOptions());
         this.$optionsSearchInput.addEventListener('keyup', debounced);
     }
     attributeChangedCallback(name, oldValue, newValue) {
@@ -156,19 +160,34 @@ class MuicSelect extends HTMLElement {
             this.$optionsList.appendChild($option);
         });
         this.updateAttributes();
+        this.clearSearch();
         this.render();
     }
     disconnectedCallback() {
     }
-    searchAndFilterOptions() {
+    filterOptions() {
         const query = this.$optionsSearchInput.value;
-        const filteredOptions = this.options.filter(option => this.filterCriteria(query, option));
-        console.log(filteredOptions);
+        this.filteredOptions = this.options.filter(option => this.filterCriteria(query, option));
+        const noOptions = this.filteredOptions.length === 0;
+        this.options.forEach(option => {
+            if (this.filterCriteria(query, option)) {
+                if (!option.$element.parentElement)
+                    this.$optionsList.appendChild(option.$element);
+            }
+            else {
+                if (option.$element.parentElement)
+                    this.$optionsList.removeChild(option.$element);
+            }
+        });
+        if (noOptions && !this.$emptyOptions.parentElement)
+            this.$optionsList.appendChild(this.$emptyOptions);
+        else if (!noOptions && this.$emptyOptions.parentElement)
+            this.$optionsList.removeChild(this.$emptyOptions);
     }
     /**
      * Renders options list
      */
-    renderOptionsContainer() {
+    renderOptionsContainer(filtered) {
         // For each option, create a option element
         this.options.forEach(option => {
             // Return if the option already has item element in options list
@@ -189,6 +208,12 @@ class MuicSelect extends HTMLElement {
             option.$element = $option;
             this.$optionsList.appendChild($option);
         });
+        if (this.options.length === 0) {
+            this.$optionsList.setAttribute('empty', '');
+        }
+        else {
+            this.$optionsList.removeAttribute('empty');
+        }
     }
     /**
      * Creates selection bar item given a option
@@ -277,6 +302,7 @@ class MuicSelect extends HTMLElement {
         else {
             this.$optionsContainer.removeAttribute('open');
             this.$selectionContainer.removeAttribute('active');
+            this.clearSearch();
             document.removeEventListener('click', this.backdropClick);
             this.triggerEvent('close');
         }
@@ -312,12 +338,12 @@ class MuicSelect extends HTMLElement {
         this.renderSelectionsContainer();
     }
     selectAllOptions() {
-        this.options.forEach(option => this.selectOption(option, true, false));
+        this.filteredOptions.forEach(option => this.selectOption(option, true, false));
         this.renderSelectionsContainer();
         this.triggerEvent('change');
     }
     deselectAllOptions() {
-        this.options.forEach(option => this.selectOption(option, false, false));
+        this.filteredOptions.forEach(option => this.selectOption(option, false, false));
         this.renderSelectionsContainer();
         this.triggerEvent('change');
     }
@@ -334,6 +360,10 @@ class MuicSelect extends HTMLElement {
         });
         this.renderSelectionsContainer();
         this.triggerEvent('change');
+    }
+    clearSearch() {
+        this.$optionsSearchInput.value = '';
+        this.$optionsSearchInput.dispatchEvent(new Event('keyup'));
     }
     triggerEvent(name) {
         if (name == 'change') {
@@ -353,6 +383,7 @@ MuicSelect.SELECTION_ITEM_CLASS = 'muic-select-selection-item';
 MuicSelect.CLEAR_SELECTION_CLASS = 'muic-select-clear-selection';
 MuicSelect.OPTIONS_CONTAINER_CLASS = 'muic-select-options-container';
 MuicSelect.OPTIONS_CONTAINER_ITEM_CLASS = 'muic-select-options-item';
+MuicSelect.EMPTY_OPTIONS_CONTAINER_ITEM_CLASS = 'muic-select-empty-options-item';
 MuicSelect.OPTIONS_SEARCH_CLASS = 'muic-select-options-search';
 MuicSelect.OPTIONS_LIST_CLASS = 'muic-select-options-list';
 MuicSelect.OPTIONS_ACTIONS_CLASS = 'muic-select-options-actions';
